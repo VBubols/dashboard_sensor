@@ -18,6 +18,8 @@ class DeviceSerializer(serializers.ModelSerializer):
                 result.append({
                     "metric_key": sensor.metric_key,
                     "metric_type": sensor.metric_type,
+                    "label": sensor.label,
+                    "unit": sensor.unit,
                     "value": latest.value,
                     "timestamp": latest.timestamp
                 })
@@ -31,7 +33,9 @@ class SensorSerializer(serializers.ModelSerializer):
 class ReadingSerializer(serializers.ModelSerializer):
     metric_key = serializers.CharField(source="sensor.metric_key")
     metric_type = serializers.CharField(source="sensor.metric_type")
+    label = serializers.CharField(source="sensor.label")
+    unit = serializers.CharField(source="sensor.unit")
 
     class Meta:
         model = Reading
-        fields = ["id", "metric_key", "metric_type", "value", "timestamp"]
+        fields = ["id", "metric_key", "metric_type", "label", "unit", "value", "timestamp"]

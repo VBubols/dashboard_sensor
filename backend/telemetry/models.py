@@ -13,6 +13,8 @@ class Sensor(models.Model):
     device = models.ForeignKey(Device, on_delete=models.CASCADE, related_name="sensors")
     metric_key = models.CharField(max_length=64)
     metric_type = models.CharField(max_length=32)
+    label = models.CharField(max_length=100, blank=True)
+    unit = models.CharField(max_length=16, blank=True)
 
     class Meta:
         unique_together = ("device", "metric_key")

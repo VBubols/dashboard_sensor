@@ -5,7 +5,7 @@ from datetime import datetime
 from django.core.management.base import BaseCommand
 import paho.mqtt.client as mqtt
 from telemetry.models import Device, Sensor, Reading
-from telemetry.metric_types import resolve_metric_type
+from telemetry.metric_types import resolve_metric_meta
 
 
 class MqttSubscriber:
@@ -48,11 +48,16 @@ class MqttSubscriber:
             for metric_key, value in data["object"].items():
                 if not isinstance(value, (int, float)):
                     continue
-    
+                
+                meta = resolve_metric_meta(metric_key)
                 sensor, _ = Sensor.objects.get_or_create(
                     device = device,
                     metric_key = metric_key,
-                    defaults={"metric_type": resolve_metric_type(metric_key)},
+                    defaults={
+                        "metric_type": meta["metric_type"],
+                        "label": meta["label"],
+                        "unit": meta["unit"],
+                        },
                 )
     
                 Reading.objects.create(
