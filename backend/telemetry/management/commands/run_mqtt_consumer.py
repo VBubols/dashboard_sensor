@@ -1,8 +1,11 @@
 import os
 import time
-
+import json
+from datetime import datetime
 from django.core.management.base import BaseCommand
 import paho.mqtt.client as mqtt
+from telemetry.models import Device, Sensor, Reading
+from telemetry.metric_types import resolve_metric_type
 
 
 class MqttSubscriber:
@@ -28,7 +31,37 @@ class MqttSubscriber:
             client.subscribe(self._topic)
 
         def on_message(client, userdata, msg):
-            print(f"Received `{msg.payload.decode()}` from `{msg.topic}` topic")
+            data = json.loads(msg.payload)
+            
+            device_info = data["deviceInfo"]
+            device, _ = Device.objects.get_or_create(
+                dev_eui = data["deviceInfo"]["devEui"],
+                defaults={
+                    "name": data["deviceInfo"]["deviceName"],
+                    "profile_id": data["deviceInfo"]["deviceProfileId"],
+                    "profile_name": data["deviceInfo"]["deviceProfileName"]
+                },
+            )
+            
+            timestamp = datetime.fromisoformat(data["time"])
+    
+            for metric_key, value in data["object"].items():
+                if not isinstance(value, (int, float)):
+                    continue
+    
+                sensor, _ = Sensor.objects.get_or_create(
+                    device = device,
+                    metric_key = metric_key,
+                    defaults={"metric_type": resolve_metric_type(metric_key)},
+                )
+    
+                Reading.objects.create(
+                    sensor = sensor,
+                    timestamp = timestamp,
+                    value = value
+                )
+    
+            print(f"Gravado {device.name} - {len(data['object'])} métricas")
 
         self._client.on_connect = on_connect
         self._client.on_message = on_message
