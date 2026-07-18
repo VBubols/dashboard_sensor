@@ -1,6 +1,8 @@
 export type CurrentStateItem = {
     metric_key: string;
     metric_type: string;
+    label: string;
+    unit: string;
     value: number;
     timestamp: string;
 };
@@ -17,6 +19,8 @@ export type Reading = {
     id: number;
     metric_key: string;
     metric_type: string;
+    label: string;
+    unit: string;
     value: number;
     timestamp: string;
 }

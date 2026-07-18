@@ -1,5 +1,6 @@
 "use client";
 
+import { DeviceCard } from "@/components/DeviceCard";
 import { useQuery } from "@tanstack/react-query";
 import { fetchDevices } from "@/lib/api";
 import Link from "next/link";
@@ -16,24 +17,12 @@ export default function Home() {
 
 
   return (
-    <main style={{ padding: "2rem" }}>
-      <h1>Dashboard SensorWeb</h1>
       <div style={{ display: "flex", flexWrap: "wrap", gap: "1rem" }}>
         {devices?.map((device) => (
-          <Link key={device.id} href={`/devices/${device.id}`} style={{ textDecoration: "none", color: "inherit" }}>
-            <div key={device.id} style={{ border: "1px solid #ccc", padding: "1rem", borderRadius: "8px" }}>
-              <h2>{device.name}</h2>
-              <ul>
-                {device.current_state.map((metric) => (
-                  <li key={metric.metric_key}>
-                    {metric.metric_type}: {metric.value}
-                  </li>
-                ))}
-              </ul>
-            </div>
+          <Link key={device.id} href={`/devices/${device.id}`}>
+            <DeviceCard device={device} />
           </Link>
         ))}
       </div>
-    </main>  
   );
 }
