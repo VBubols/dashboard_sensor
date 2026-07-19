@@ -19,7 +19,7 @@ services:
 
   db:
     image: postgres:16
-    environment: 
+    environment:
       POSTGRES_DB: telemetry
       POSTGRES_USER: telemetry
       POSTGRES_PASSWORD: telemetry
@@ -27,6 +27,49 @@ services:
       - "5432:5432"
     volumes:
       - pgdata:/var/lib/postgresql/data
+    restart: unless-stopped
+
+  backend:
+    build: ./backend
+    depends_on:
+      - db
+    environment:
+      POSTGRES_HOST: db
+      POSTGRES_PORT: "5432"
+      POSTGRES_DB: telemetry
+      POSTGRES_USER: telemetry
+      POSTGRES_PASSWORD: telemetry
+    command: >
+      sh -c "python manage.py migrate && python manage.py runserver 0.0.0.0:8000"
+    ports:
+      - "8000:8000"
+    restart: unless-stopped
+
+  mqtt_consumer:
+    build: ./backend
+    depends_on:
+      - broker
+      - db
+      - backend
+    environment:
+      MQTT_HOST: broker
+      MQTT_PORT: "1883"
+      POSTGRES_HOST: db
+      POSTGRES_PORT: "5432"
+      POSTGRES_DB: telemetry
+      POSTGRES_USER: telemetry
+      POSTGRES_PASSWORD: telemetry
+    command: python manage.py run_mqtt_consumer
+    restart: unless-stopped
+
+  frontend:
+    build: ./frontend
+    depends_on:
+      - backend
+    environment:
+      NEXT_PUBLIC_API_URL: http://localhost:8000/api
+    ports:
+      - "3000:3000"
     restart: unless-stopped
 
 volumes:
